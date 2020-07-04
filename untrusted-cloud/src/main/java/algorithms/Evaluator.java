@@ -113,7 +113,7 @@ public class Evaluator {
 	}
 	
 	public static long[] runTests(BCMessageDigest digest, String filePath) {
-		int iterations = 100000;
+		int iterations = 1000000;
 		long[] results = new long[iterations];
 		
 		for(int i = 0; i < iterations; i++) {
