@@ -7,9 +7,6 @@ import java.security.MessageDigest;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.bouncycastle.jcajce.provider.digest.SHA512;
-import org.bouncycastle.jcajce.provider.digest.Blake2b.Blake2b512;
-
 
 import iaik.security.md.Groestl512;
 import iaik.security.md.JH512;
@@ -23,6 +20,8 @@ import iaik.security.md.SHA512_256;
 
 
 public class LogisticRegressionCreator {
+	
+	public static int megaByteToByteConversion = 1000000;
 	
 	// Proposed
 	public static final MessageDigest whirlpoolDigest = new Whirlpool();
@@ -38,15 +37,7 @@ public class LogisticRegressionCreator {
 	public static final MessageDigest blake512Digest = new BLAKE512();
 	
 	public static void main(String args[]) throws Exception {
-		
-		
-		HashMap<String, MessageDigest> originalDigest = new HashMap<String, MessageDigest>();
-		originalDigest.put("Whirlpool", whirlpoolDigest);
-		originalDigest.put("MD5", md5Digest);
-		originalDigest.put("SHA-512", sha512Digest);
-		originalDigest.put("SHA3-512", sha3Digest);
-		
-		
+
 		HashMap<String, MessageDigest> finalistsMap = new HashMap<String, MessageDigest>();
 		finalistsMap.put("Groestl", groestDigest);
 		finalistsMap.put("KECCAK", keccakDigest);
@@ -54,52 +45,36 @@ public class LogisticRegressionCreator {
 		finalistsMap.put("JH-512", jh512Digest);
 		finalistsMap.put("BLAKE-512", blake512Digest);
 		finalistsMap.put("Whirlpool", whirlpoolDigest);
-		
-		FileWriter fileWriter = new FileWriter("E:\\average-results.csv");
+		finalistsMap.put("SHA3-512", sha3Digest);
+		finalistsMap.put("MD5", md5Digest);
+		finalistsMap.put("SHA-512", sha512Digest);
+
+		FileWriter fileWriter = new FileWriter("E:\\finalist-results.csv");
 		fileWriter.write("Algorithm,File-Size,Duration\n");
-		for (Map.Entry<String,MessageDigest> entry : originalDigest.entrySet()) {
-			String name = entry.getKey();
-			MessageDigest loopDigest = entry.getValue();
-			System.out.println(name);
-			for(int i = 1000000; i < 100000000; i+= 100000) {
-				File file = new File("E:\\tmp.txt");
-				RandomAccessFile f = new RandomAccessFile(file, "rw");
-				byte[] tempArray = new byte[i];
-				f.setLength(i);
-				f.read(tempArray, 0, i);
-				long startTime = System.nanoTime();
-				loopDigest.digest(tempArray);
-				long duration = (System.nanoTime() - startTime)/1000000; // Convert to milliseconds 
-				
-				fileWriter.write(name + "," + String.valueOf(i/1000) + ", " + String.valueOf(duration)+"\n");
-				f.close();
-				file.delete();
-			}
-		}
-		fileWriter.close();
-		
-		FileWriter fileWriter2 = new FileWriter("E:\\finalist-results.csv");
-		fileWriter2.write("Algorithm,File-Size,Duration\n");
 
 		for (Map.Entry<String,MessageDigest> entry : finalistsMap.entrySet()) {
 			String name = entry.getKey();
 			MessageDigest loopDigest = entry.getValue();
 			System.out.println(name);
-			for(int i = 1000000; i < 100000000; i+= 100000) {
+			
+			// Create files ranging from 1 MB to 100MB in 1MB increments
+			for(int i = 1; i < 100; i+= 1) {
 				File file = new File("E:\\tmp.txt");
 				RandomAccessFile f = new RandomAccessFile(file, "rw");
-				byte[] tempArray = new byte[i];
-				f.setLength(i);
-				f.read(tempArray, 0, i);
+				
+				int sizeInBytes = i * megaByteToByteConversion;
+				byte[] tempArray = new byte[sizeInBytes];
+				f.setLength(sizeInBytes);
+				f.read(tempArray, 0, sizeInBytes);
 				long startTime = System.nanoTime();
 				loopDigest.digest(tempArray);
 				long duration = (System.nanoTime() - startTime)/1000000;
 				
-				fileWriter2.write(name + "," + String.valueOf(i/1000) + ", " + String.valueOf(duration)+"\n");
+				fileWriter.write(name + "," + String.valueOf(i) + ", " + String.valueOf(duration)+"\n");
 				f.close();
 				file.delete();
 			}
 		}
-		fileWriter2.close();
+		fileWriter.close();
 	}
 }
